@@ -3,211 +3,328 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>공개수업 관리자 앱 · 광교호수중학교</title>
+<title>공개수업 참관 안내 · 광교호수중학교</title>
 <!--
   ============================================================
-  [관리자용] 공개수업 관리자 앱 (단일 HTML)
+  [참관자용] 공개수업 참관 안내 웹앱 - 광교호수중학교 (단일 HTML)
   사용법 요약
-  1) 비밀번호를 입력해 잠금을 해제합니다(기본값 1234, 아래 PASSWORD에서 변경).
-  2) 공지문·만족도 안내문·전송 주소, 자료 목록(추가/수정/삭제/순서), 앱 9종 QR
-     경로를 편집하면 localStorage에 저장됩니다.
-  3) "webapp_data.js 내려받기(배포)" 버튼을 눌러 webapp_data.js 파일을 받은 뒤,
-     참관자용 HTML(공개수업참관_안내웹앱_광교호수중.html)과 [같은 폴더]에
-     덮어쓰면 참관자용 웹앱에 반영됩니다.
-  4) JSON 내보내기/가져오기로 백업·복원할 수 있습니다.
-  5) 서버·백엔드·외부 라이브러리 없이 file:// 로도 동작합니다.
-  ※ 비밀번호 잠금은 간이 기능이며 실제 보안용이 아닙니다.
+  1) 이 파일을 브라우저로 열면 서버 없이 바로 동작합니다(file:// 가능).
+  2) 관리자 앱(공개수업_관리자앱.html)에서 "webapp_data.js 내려받기(배포)"로
+     내려받은 webapp_data.js 를 이 HTML과 [같은 폴더]에 넣어 주세요.
+     - webapp_data.js(window.WEBAPP_DATA)가 있으면 그 내용이 우선 적용됩니다.
+     - 파일이 없거나 비어 있으면 아래 DEFAULT_DATA(기본 자료)로 동작합니다.
+  3) "마지막 업데이트"는 WEBAPP_DATA.updatedAt 기준으로 표시됩니다.
+  4) 만족도 응답은 satisfaction.appsScriptUrl(또는 아래 CONFIG.appsScriptUrl)에
+     Google Apps Script 웹앱 URL이 설정된 경우에만 전송되며, 미설정 시
+     "기기 보관 모드"로 동작합니다(응답은 익명 수집).
+  ※ 이 파일에 박혀 있는 자료 링크는 2026-12-08까지 유효한 임시 링크입니다.
   ============================================================
 -->
 <style>
 :root{
   --green:#3ba776; --green-soft:#e6f5ec; --blue:#4a7fb5; --blue-soft:#e8f1fa;
-  --ink:#233142; --sub:#5b6b7c; --line:#dce7e0; --danger:#c0392b;
-  --shadow:0 6px 18px rgba(35,49,66,.08); --radius:14px;
+  --ink:#233142; --sub:#5b6b7c; --line:#dce7e0; --card:#ffffff;
+  --shadow:0 6px 18px rgba(35,49,66,.08); --radius:16px;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{font-family:'Malgun Gothic','맑은 고딕',Apple SD Gothic Neo,'Noto Sans KR',sans-serif;
-  color:var(--ink);background:#eef4fb;line-height:1.6}
-.wrap{max-width:860px;margin:0 auto;padding:0 16px 60px}
-header.hero{background:linear-gradient(135deg,#2f8f66,#3f7cb4);color:#fff;padding:22px 16px;text-align:center}
-header.hero h1{margin:0;font-size:1.3rem;letter-spacing:-.5px}
-header.hero p{margin:.3em 0 0;opacity:.92;font-size:.85rem}
-.card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);
-  padding:18px 20px;margin:16px 0;border:1px solid var(--line)}
-.card h2{margin:0 0 12px;font-size:1.05rem;color:#2f6e54;border-left:5px solid var(--green);padding-left:10px}
-.card p{font-size:.88rem;color:var(--sub)}
-label{display:block;font-size:.82rem;font-weight:700;color:var(--sub);margin:10px 0 4px}
-textarea,input[type=text],input[type=password],input[type=file],select{width:100%;border:1px solid var(--line);
-  border-radius:10px;padding:9px 12px;font-family:inherit;font-size:.88rem;color:var(--ink);background:#fff}
-textarea{min-height:72px;resize:vertical}
-.btn{display:inline-block;border:0;border-radius:999px;padding:9px 18px;font-size:.88rem;cursor:pointer;
-  font-family:inherit;transition:.15s;margin:4px 4px 4px 0}
+  color:var(--ink); background:linear-gradient(180deg,#f2faf5 0%,#eef4fb 100%); min-height:100vh; line-height:1.6}
+.wrap{max-width:980px;margin:0 auto;padding:0 16px 48px}
+.hero{background:linear-gradient(135deg,#2f8f66 0%,#3f7cb4 100%);color:#fff;
+  border-radius:0 0 26px 26px;padding:26px 18px 20px;text-align:center;box-shadow:var(--shadow)}
+.hero h1{margin:.2em 0;font-size:1.45rem;letter-spacing:-.5px}
+.hero p{margin:.25em 0;opacity:.92;font-size:.95rem}
+.hero .meta{margin-top:10px;display:inline-block;background:rgba(255,255,255,.16);
+  border-radius:999px;padding:5px 14px;font-size:.82rem}
+.hero-actions{margin-top:12px}
+.btn{display:inline-block;border:0;border-radius:999px;padding:9px 18px;font-size:.9rem;
+  cursor:pointer;text-decoration:none;transition:.15s;font-family:inherit}
+.btn-light{background:#fff;color:#2f8f66;font-weight:700}
+.btn-light:hover{transform:translateY(-1px)}
 .btn-green{background:var(--green);color:#fff;font-weight:700}
 .btn-green:hover{filter:brightness(1.06)}
-.btn-blue{background:var(--blue);color:#fff;font-weight:700}
-.btn-blue:hover{filter:brightness(1.06)}
 .btn-ghost{background:#eef3f0;color:var(--sub)}
-.btn-danger{background:#fdecea;color:var(--danger)}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.hint{background:var(--blue-soft);border:1px solid #c9ddf2;border-radius:12px;padding:12px 16px;
-  font-size:.85rem;color:#33608e;margin:16px 0}
-.hint ol{margin:6px 0 0;padding-left:20px}
-.item-row{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;background:#fbfefd;
-  display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.item-row .info{flex:1;min-width:200px}
-.item-row strong{font-size:.9rem}
-.item-row .meta{font-size:.76rem;color:var(--sub)}
-.icon-btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:5px 9px;cursor:pointer;font-size:.8rem}
-.icon-btn:hover{background:#eef6f1}
-.app-row{display:grid;grid-template-columns:1.2fr 1.8fr 1.2fr auto;gap:8px;align-items:end;margin-bottom:10px}
-.app-row label{margin:0 0 3px}
-@media (max-width:700px){ .app-row{grid-template-columns:1fr} }
-#gate{position:fixed;inset:0;background:linear-gradient(160deg,#2f8f66,#3f7cb4);display:flex;
-  align-items:center;justify-content:center;z-index:100}
-#gate .box{background:#fff;border-radius:18px;padding:28px 26px;width:320px;text-align:center;box-shadow:var(--shadow)}
-#gate h2{margin:0 0 6px;font-size:1.05rem}
-#gate p{font-size:.8rem;color:var(--sub);margin:0 0 12px}
-#gate input{margin-bottom:10px}
-#gate .err{color:var(--danger);font-size:.8rem;min-height:1.2em}
-#msg{font-size:.85rem;font-weight:700;min-height:1.3em;margin-top:6px}
-#msg.ok{color:var(--green)}
-#msg.err{color:var(--danger)}
-#preview{border:1px dashed #b9d6c6;border-radius:12px;padding:14px;margin-top:10px;background:#fbfefd;font-size:.85rem;display:none}
-#preview h3{margin:.6em 0 .2em;font-size:.92rem;color:#2f6e54}
-#preview li{font-size:.82rem;color:var(--sub)}
-table{width:100%;border-collapse:collapse;font-size:.84rem}
-th,td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
-th{color:var(--sub);font-size:.78rem;background:#f4f8f6}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.tabs{position:sticky;top:0;z-index:20;display:flex;gap:6px;overflow-x:auto;
+  background:rgba(255,255,255,.96);backdrop-filter:blur(4px);
+  padding:10px 12px;border-bottom:1px solid var(--line);box-shadow:0 2px 8px rgba(35,49,66,.05)}
+.tab-btn{flex:0 0 auto;border:1px solid var(--line);background:#fff;color:var(--sub);
+  border-radius:999px;padding:8px 14px;font-size:.86rem;cursor:pointer;white-space:nowrap;font-family:inherit}
+.tab-btn.active{background:var(--green);border-color:var(--green);color:#fff;font-weight:700}
+.panel{display:none;padding-top:18px}
+.panel.active{display:block}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:18px 20px;margin-bottom:16px;border:1px solid var(--line)}
+.card h2{margin:0 0 10px;font-size:1.12rem;color:#2f6e54;border-left:5px solid var(--green);
+  padding-left:10px;letter-spacing:-.3px}
+.card h2.blue{color:#33608e;border-left-color:var(--blue)}
+.card h3{margin:.2em 0 .4em;font-size:1rem}
+.card p,.card li{font-size:.92rem;color:var(--sub)}
+ul.clean{margin:6px 0;padding-left:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.badge{display:inline-block;background:var(--green-soft);color:#2f8f66;border-radius:999px;
+  padding:3px 10px;font-size:.78rem;font-weight:700;margin-right:6px}
+.badge.blue{background:var(--blue-soft);color:var(--blue)}
+.timeline{list-style:none;margin:0;padding:0}
+.timeline li{position:relative;padding:0 0 14px 26px;border-left:2px solid #cfe6d9;margin-left:8px}
+.timeline li:last-child{border-left-color:transparent}
+.timeline li::before{content:'';position:absolute;left:-7px;top:4px;width:12px;height:12px;
+  border-radius:50%;background:var(--green);border:2px solid #fff;box-shadow:0 0 0 2px #cfe6d9}
+.timeline .t{font-weight:700;color:#2f8f66;font-size:.9rem}
+.mat-item{display:flex;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--line);
+  border-radius:12px;margin-bottom:8px;text-decoration:none;color:var(--ink);background:#fbfefd;transition:.15s}
+.mat-item:hover{border-color:var(--green);background:var(--green-soft)}
+.mat-icon{font-size:1.3rem}
+.mat-body strong{display:block;font-size:.92rem}
+.mat-body em{font-style:normal;font-size:.8rem;color:var(--sub)}
+.app-card{text-align:center}
+.app-card h3{font-size:.98rem}
+.app-card p{font-size:.84rem;min-height:2.6em}
+.qr-box{width:110px;height:110px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;
+  background:#f4f8f6;border:1px dashed #b9d6c6;border-radius:12px;overflow:hidden}
+.qr-box img{width:100%;height:100%;object-fit:contain}
+.qr-empty{font-size:.75rem;color:#9ab0a3}
+.stars{display:inline-flex;gap:4px;font-size:1.5rem;cursor:pointer;user-select:none}
+.stars span{color:#d7dfe6;transition:.1s}
+.stars span.on{color:#f2b134}
+.q-row{padding:10px 0;border-bottom:1px dashed var(--line)}
+.q-row:last-of-type{border-bottom:0}
+.q-label{font-size:.92rem;margin-bottom:6px}
+textarea,input[type=text],input[type=url],select{width:100%;border:1px solid var(--line);border-radius:10px;
+  padding:10px 12px;font-family:inherit;font-size:.9rem;color:var(--ink);background:#fff}
+textarea{min-height:90px;resize:vertical}
+#survey-status{font-weight:700;margin-top:10px}
+#survey-status.ok{color:#2f8f66}
+#survey-status.err{color:#c0392b}
+.banner{background:#fff6e5;border:1px solid #f0dfae;color:#8a6d1f;border-radius:12px;
+  padding:10px 14px;font-size:.86rem;margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.map-btn{display:inline-block;margin-top:6px}
+.ref-list a{display:block;margin-bottom:8px}
+footer{text-align:center;color:#8fa0af;font-size:.78rem;padding:24px 0 8px}
+@media (max-width:640px){
+  .hero h1{font-size:1.15rem}
+  .card{padding:14px}
+  .grid{grid-template-columns:1fr}
+}
+@media print{
+  .tabs,.hero-actions,.no-print{display:none !important}
+  body{background:#fff}
+  .panel{display:block !important;page-break-before:always}
+  .panel:first-of-type{page-break-before:avoid}
+  .card{box-shadow:none;break-inside:avoid}
+}
 </style>
 </head>
 <body>
 
-<div id="gate">
-  <div class="box">
-    <h2>🔐 관리자 앱</h2>
-    <p>공개수업 자료 관리 · 광교호수중학교</p>
-    <input type="password" id="pw" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')tryLogin()">
-    <br>
-    <button class="btn btn-green" onclick="tryLogin()">잠금 해제</button>
-    <div class="err" id="gate-err"></div>
-  </div>
-</div>
-
 <header class="hero">
-  <h1>📝 공개수업 관리자 앱</h1>
-  <p>광교호수중학교 · 2026 GGHS 디지털 성장 수업 공개 (2026. 11. 4.)</p>
+  <div class="meta">2026학년도 경기형 AI·디지털역량 성장학교</div>
+  <h1>AI·디지털로 여는 미래교실<br>GGHS 디지털 성장 수업 공개</h1>
+  <p>광교호수중학교 · 2026. 11. 4.(수) 14:00~16:00</p>
+  <p>수업 교실 및 융합과학실 · 1층 도서관(수업 나눔 협의회)</p>
+  <div class="meta" id="updated-badge">마지막 업데이트 확인 중…</div>
+  <div class="hero-actions no-print">
+    <button class="btn btn-light" onclick="window.print()">🖨️ 인쇄하기</button>
+  </div>
 </header>
+
+<nav class="tabs no-print" id="tabs" role="tablist">
+  <button class="tab-btn active" data-tab="notice">📋 공개수업 안내</button>
+  <button class="tab-btn" data-tab="materials">📚 교과 학습자료</button>
+  <button class="tab-btn" data-tab="apps">📱 업무효용 앱</button>
+  <button class="tab-btn" data-tab="survey">⭐ 만족도 조사</button>
+  <button class="tab-btn" data-tab="map">🗺️ 찾아오시는 길</button>
+  <button class="tab-btn" data-tab="report">🏫 AI 성장학교 보고서</button>
+</nav>
 
 <div class="wrap">
 
-<div class="hint">
-  <strong>📦 배포 방법</strong>
-  <ol>
-    <li>자료를 편집하면 브라우저(localStorage)에 자동 저장됩니다.</li>
-    <li><b>"webapp_data.js 내려받기(배포)"</b> 버튼으로 배포 파일을 내려받습니다.</li>
-    <li>내려받은 <b>webapp_data.js</b>를 참관자용 HTML(<b>공개수업참관_안내웹앱_광교호수중.html</b>)과
-    <b>같은 폴더</b>에 넣어 주세요(기존 파일은 덮어쓰기). QR 이미지 파일 9개(qr_1 ~ qr_9)도 같은 폴더에 함께 넣어 주세요.</li>
-    <li>참관자용 웹앱을 열면 편집 내용이 바로 반영됩니다.</li>
-  </ol>
-</div>
-
-<section class="card">
-  <h2>1. 공지문 · 만족도 안내 · 전송 주소</h2>
-  <label for="notice">공지문(참관자용 1번 탭 상단 표시)</label>
-  <textarea id="notice"></textarea>
-  <label for="guidance">만족도 조사 안내문</label>
-  <textarea id="guidance"></textarea>
-  <label for="scripturl">만족도 전송 주소 (Google Apps Script 웹앱 URL, 비우면 기기 보관 모드)</label>
-  <input type="text" id="scripturl" placeholder="https://script.google.com/macros/s/…/exec">
-  <button class="btn btn-green" onclick="saveMeta()">저장</button>
-  <div id="msg"></div>
-</section>
-
-<section class="card">
-  <h2>2. 자료 관리 (자료 추가 · 수정 · 삭제 · 순서)</h2>
-  <p>표시 탭: <b>materials</b>=교과 학습자료, <b>report</b>=AI 성장학교 보고서, <b>apps</b>=앱 관련 자료,
-  <b>notice</b>=공개수업 안내, <b>info</b>=찾아오시는 길</p>
-  <label for="f-title">제목</label>
-  <input type="text" id="f-title" placeholder="예: 과학 공개수업 지도안">
-  <label for="f-desc">설명</label>
-  <input type="text" id="f-desc" placeholder="예: 과학 · 보화 선생님">
-  <div class="app-row" style="grid-template-columns:1fr 1fr 1fr">
-    <div>
-      <label for="f-type">유형</label>
-      <select id="f-type"><option value="file">파일</option><option value="link">링크</option></select>
-    </div>
-    <div>
-      <label for="f-tab">표시 탭</label>
-      <select id="f-tab">
-        <option value="materials">교과 학습자료</option>
-        <option value="report">AI 성장학교 보고서</option>
-        <option value="apps">앱 관련 자료</option>
-        <option value="notice">공개수업 안내</option>
-        <option value="info">찾아오시는 길</option>
-      </select>
-    </div>
-    <div>
-      <label for="f-qr">QR 이미지 경로(선택)</label>
-      <input type="text" id="f-qr" placeholder="파일명 또는 URL">
+<section class="panel active" id="panel-notice" role="tabpanel">
+  <div class="card">
+    <h2>행사 개요</h2>
+    <p><span class="badge">일시</span>2026. 11. 4.(수) 14:00 ~ 16:00</p>
+    <p><span class="badge">장소</span>수업 교실 및 융합과학실 · 1층 도서관(수업 나눔 협의회)</p>
+    <p><span class="badge">대상</span>경기도 전체 교사 (사전 신청자)</p>
+    <div id="notice-extras"></div>
+  </div>
+  <div class="card">
+    <h2>세부 일정</h2>
+    <ul class="timeline">
+      <li><span class="t">14:00 ~ 14:30</span><br>등록 및 안내 (1층 로비)</li>
+      <li><span class="t">14:30 ~ 15:15</span><br>공개수업 참관 — 과학 · 정보 · 영어 동시 진행</li>
+      <li><span class="t">15:25 ~ 15:55</span><br>수업 나눔 협의회 (1층 도서관)</li>
+      <li><span class="t">행사 마무리</span><br>만족도 조사 (웹앱 4번 탭에서 참여)</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h2>공개수업 정보</h2>
+    <div class="grid">
+      <div>
+        <h3>🔬 과학</h3>
+        <p>주제: 보일·샤를 미니 부스 박람회<br>장소: 보임 교실<br>담당: 보화 선생님</p>
+      </div>
+      <div>
+        <h3>💻 정보</h3>
+        <p>주제: 인공지능 윤리적 문제<br>장소: 정보 교실<br>담당: 신동철 선생님</p>
+      </div>
+      <div>
+        <h3>🗣️ 영어</h3>
+        <p>주제: 너의 프롬프트는<br>장소: 영어 교실<br>담당: 신효필 선생님</p>
+      </div>
     </div>
   </div>
-  <label for="f-url">URL 또는 파일명</label>
-  <input type="text" id="f-url" placeholder="https://… 또는 자료파일.pdf">
-  <button class="btn btn-green" id="f-save" onclick="saveItem()">＋ 자료 추가</button>
-  <button class="btn btn-ghost" onclick="resetForm()">입력 초기화</button>
-  <div id="item-list" style="margin-top:14px"></div>
+  <div class="card">
+    <h2 class="blue">참관 예절 안내</h2>
+    <ul class="clean">
+      <li>휴대전화는 소리 없음(무음)으로 설정해 주세요.</li>
+      <li>수업 중 사진·동영상 촬영은 자제해 주세요. (학생 초상권 보호)</li>
+      <li>수업 시작 후 지정된 좌석에 앉아 관찰 기록지를 작성해 주세요.</li>
+      <li>수업 진행을 방해하지 않도록 이동은 최소화해 주세요.</li>
+      <li>나눔 협의회에서는 학습자 중심의 수업에 대한 따뜻한 피드백을 부탁드립니다.</li>
+      <li>주차 공간이 협소하오니 가급적 대중교통 이용을 부탁드립니다.</li>
+    </ul>
+  </div>
 </section>
 
-<section class="card">
-  <h2>3. 업무효용 앱 · QR 관리</h2>
-  <p>참관자용 3번 탭의 앱 카드에 표시됩니다. QR 이미지는 파일명(같은 폴더 기준) 또는 URL을 입력하세요.
-  비워 두면 "QR 준비 중"으로 표시됩니다.</p>
-  <p style="margin-top:6px">📁 파일명 규칙: <b>qr_1 ~ qr_9</b> (영문+숫자 권장) —
-  예: qr_1_ratio_check.png, qr_2_presenter.png, … , qr_9_k_content.png.
-  이미지 파일 9개는 참관자용 HTML과 같은 폴더에 함께 넣어 주세요.</p>
-  <div id="app-list"></div>
-  <button class="btn btn-blue" onclick="addApp()">＋ 앱 추가</button>
-  <button class="btn btn-green" onclick="saveApps()">앱 저장</button>
+<section class="panel" id="panel-materials" role="tabpanel">
+  <div class="card">
+    <h2>과학</h2>
+    <p><span class="badge">단원</span>기체의 성질(분자 운동과 압력)</p>
+    <p><span class="badge">성취기준</span>[9과1-05] 기체의 부피와 압력, 온도 사이의 관계를 분자 운동과 연관 지어 설명할 수 있다.</p>
+    <p><span class="badge">수업 흐름</span>① 도입: 미니 부스 박람회 안내 및 관찰 기준 안내 → ② 전개: 조별 부스 탐색(보일 법칙·샤를 법칙 실험 관찰) → ③ 정리: 탐구 결과 공유 및 상호 질문</p>
+  </div>
+  <div class="card">
+    <h2>정보</h2>
+    <p><span class="badge">단원</span>인공지능과 사회(윤리적 문제)</p>
+    <p><span class="badge">성취기준</span>[정9-05] 인공지능 기술 활용 과정에서 나타나는 윤리적 문제를 탐구하고, 책임 있는 활용 방안을 제시할 수 있다.</p>
+    <p><span class="badge">수업 흐름</span>① 도입: 트롤리 딜레마 상황 제시 → ② 전개: 조별 윤리적 쟁점 분석 및 조별 활동지 작성 → ③ 정리: 조별 발표와 토론</p>
+  </div>
+  <div class="card">
+    <h2>영어</h2>
+    <p><span class="badge">단원</span>AI 시대의 영어 소통(프롬프트 작성)</p>
+    <p><span class="badge">성취기준</span>[영9-06] 일상적 소통 상황에서 영어로 프롬프트를 작성하고 자신의 생각을 표현할 수 있다.</p>
+    <p><span class="badge">수업 흐름</span>① 도입: AI 도구와 프롬프트의 이해 → ② 전개: 영어 프롬프트 작성 활동 및 동료 피드백 → ③ 정리: 산출물 공유와 자기 평가</p>
+  </div>
+  <div class="card">
+    <h2 class="blue">📎 자료실</h2>
+    <p>아래 자료는 참관 전·후에 자유롭게 열람하실 수 있습니다.</p>
+    <div id="materials-list"></div>
+  </div>
 </section>
 
-<section class="card">
-  <h2>4. 배포 · 백업</h2>
-  <button class="btn btn-green" onclick="deployJs()">⬇️ webapp_data.js 내려받기(배포)</button>
-  <button class="btn btn-blue" onclick="exportJson()">JSON 내보내기(백업)</button>
-  <button class="btn btn-ghost" onclick="document.getElementById('import-file').click()">JSON 가져오기(복원)</button>
-  <input type="file" id="import-file" accept=".json,application/json" style="display:none" onchange="importJson(event)">
-  <button class="btn-danger" onclick="resetAll()">기본 데이터로 초기화</button>
-  <p id="data-info"></p>
-  <p class="hint" style="margin-top:12px">💡 <b>웹 링크 공유 안내</b>: 웹 링크(홈페이지·학교 서버)로 공유할 때는
-  참관자용 HTML과 <b>webapp_data.js</b>, QR 이미지 파일 9개(<b>qr_1 ~ qr_9</b>)를 모두 같은 폴더에 함께 올려야 합니다.
-  HTML 파일만 올리면 관리한 자료와 QR이 반영되지 않습니다.</p>
+<section class="panel" id="panel-apps" role="tabpanel">
+  <div class="card">
+    <h2>교사 업무효용 앱 소개</h2>
+    <p>광교호수중학교 AI·디지털 성장학교에서 교사 업무와 수업 설계에 활용한 앱들을 소개합니다.
+    QR 코드를 스캔하면 앱·자료로 이동합니다.</p>
+    <div class="grid" id="apps-grid"></div>
+  </div>
+  <div class="card">
+    <h2 class="blue">🔗 앱 관련 자료</h2>
+    <div id="apps-links"></div>
+  </div>
 </section>
 
-<section class="card">
-  <h2>5. 미리보기</h2>
-  <p>현재 데이터로 참관자용 화면을 간략히 확인합니다.</p>
-  <button class="btn btn-ghost" onclick="togglePreview()">미리보기 열기/닫기</button>
-  <div id="preview"></div>
+<section class="panel" id="panel-survey" role="tabpanel">
+  <div class="card">
+    <h2>만족도 조사</h2>
+    <p id="survey-guidance"></p>
+    <div id="pending-banner"></div>
+    <form id="survey-form" onsubmit="return false;">
+      <div id="rating-rows"></div>
+      <div class="q-row">
+        <div class="q-label">💬 기타 의견 (자유롭게 기술해 주세요)</div>
+        <textarea id="survey-opinion" placeholder="참관 후 느낀 점, 개선 제안 등을 남겨 주세요. (익명 수집)"></textarea>
+      </div>
+      <p style="text-align:center;margin-top:14px">
+        <button class="btn btn-green" id="survey-submit" type="button">✉️ 만족도 응답 보내기</button>
+        <button class="btn btn-ghost no-print" id="survey-retry" type="button" style="display:none">🔄 다시 전송</button>
+      </p>
+      <div id="survey-status"></div>
+      <p style="font-size:.78rem;color:#9aa9b6;margin-top:10px">※ 응답은 익명으로 수집되며 이름·연락처는 수집하지 않습니다.</p>
+    </form>
+  </div>
 </section>
+
+<section class="panel" id="panel-map" role="tabpanel">
+  <div class="card">
+    <h2>찾아오시는 길</h2>
+    <p><span class="badge">주소</span>경기도 수원시 장안구 월도컵로 8 (파장동), 광교호수중학교</p>
+    <p><span class="badge">대중교통</span>수도권 전철 1호선 화서역·성균관대역에서 시내버스 이동 후 하차,
+    또는 수원역·서수원터미널에서 버스 이용 (파장동 방면)</p>
+    <p><span class="badge">주차</span>교내 주차 공간이 협소하오니 인근 공영주차장 이용 또는
+    대중교통(도보·버스) 이용을 권장합니다.</p>
+    <a class="btn btn-green map-btn" target="_blank" rel="noopener"
+       href="https://www.google.com/maps/search/?api=1&amp;query=%EA%B4%91%EA%B5%90%ED%98%B8%EC%88%98%EC%A4%91%ED%95%99%EA%B5%90">🗺️ 구글 지도에서 길찾기</a>
+    <div id="info-extras" style="margin-top:12px"></div>
+  </div>
+</section>
+
+<section class="panel" id="panel-report" role="tabpanel">
+  <div class="card">
+    <h2>2026학년도 경기형 AI·디지털역량 성장학교 운영</h2>
+    <h3>🧭 추진 배경</h3>
+    <ul class="clean">
+      <li><strong>교과서 기반 디지털 학습 도구 활용 필수과제</strong> — 교과서와 연계된 디지털 학습 도구를 일상 수업에서 활용하는 방법을 탐색하고 교실에 적용합니다.</li>
+      <li><strong>맞춤형 교육 필수과제</strong> — 학생의 수준과 흥미에 맞는 개별화 학습을 지원하는 AI·디지털 도구 활용 수업을 설계·실행합니다.</li>
+      <li><strong>학생 정보 보호 및 AI 리터러시 필수과제</strong> — 개인정보 보호 교육과 함께 AI를 올바르게 이해하고 비판적으로 사용하는 리터러시를 기릅니다.</li>
+    </ul>
+    <h3>🪜 3단계 운영 구조</h3>
+    <ul class="clean">
+      <li><strong>1단계 · 준비·설계</strong>: 성장학교 운영 계획 수립, 교사 연수, 활용 도구 선정</li>
+      <li><strong>2단계 · 실행·적용</strong>: 교과 연계 수업 도구 개발 및 수업 적용, 공개수업 운영</li>
+      <li><strong>3단계 · 공유·확산</strong>: 성과 공유, 자료집 배포, 향후 운영 계획 연계</li>
+    </ul>
+    <h3>📦 성과물</h3>
+    <ul class="clean">
+      <li>교과 연계 수업 도구 및 수업 설계 지원 자료</li>
+      <li>교사 업무효용 앱(정기시험·수행평가 반영 비율 검토, 발표자 뽑기, 수행평가 싸인 등)</li>
+      <li>공개수업 지도안·활동지 등 수업 공개 자료집</li>
+    </ul>
+    <h3>✨ 기대 효과</h3>
+    <ul class="clean">
+      <li>교사의 AI·디지털 역량 및 수업 설계 능력 향상</li>
+      <li>학생의 맞춤형 학습 경험 확대와 디지털 리터러시 성장</li>
+      <li>학교 단위 확산 기반 마련 및 도내 교사 간 협력 네트워크 구축</li>
+    </ul>
+    <h3>🚀 향후 계획</h3>
+    <ul class="clean">
+      <li>성과 공유 확대: 도내 연수·공개수업 자료 지속 제공</li>
+      <li>자료 고도화: 교과별 수업 도구·활동지의 개선 및 버전 관리</li>
+      <li>다음 학년도 성장학교 운영 계획과의 연계</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h2 class="blue">📎 참고자료</h2>
+    <div class="ref-list" id="report-links"></div>
+  </div>
+</section>
+
+<footer>
+  광교호수중학교 · 2026학년도 경기형 AI·디지털역량 성장학교 — 본 웹앱은 브라우저에서만 동작하며 개인정보를 저장·수집하지 않습니다.
+  <small style="display:block;margin-top:6px;font-size:.72rem">웹으로 배포 시 HTML·webapp_data.js·QR 이미지 파일을 같은 폴더에 함께 올려주세요.</small>
+</footer>
 
 </div>
 
+<script src="webapp_data.js"></script>
 <script>
 (function(){
 'use strict';
 
-/* ---------- 간이 비밀번호 (실 보안용이 아닙니다. 자유롭게 변경하세요.) ---------- */
-var PASSWORD = '1234';
-
-var LS_KEY = 'gghs_admin_data_v1';
-
-/* 기본 데이터: 참관자용 웹앱(공개수업참관_안내웹앱_광교호수중.html)과 동일합니다.
-   ※ 아래 자료 링크는 2026-12-08까지 유효한 임시 링크입니다. */
+/* ============================================================
+   기본 데이터(DEFAULT_DATA)
+   - webapp_data.js 가 없거나 비어 있으면 이 데이터로 동작합니다.
+   - 아래 자료 링크는 [2026-12-08까지 유효한 임시 링크]입니다.
+     관리자 앱에서 새 배포 데이터(webapp_data.js)로 교체하면
+     그 내용이 우선 적용됩니다.
+   ============================================================ */
 var DEFAULT_DATA = {
   updatedAt: '2026-11-04T14:00:00+09:00',
   notice: '광교호수중학교 "AI·디지털로 여는 미래교실 GGHS 디지털 성장 수업 공개"에 참관해 주셔서 진심으로 감사합니다.',
   materials: [
+    /* ── 교과 학습자료 탭 ── */
     { id:'m1', tab:'materials', type:'file', title:'과학 공개수업 지도안(보일샤를 미니 부스 박람회)',
       desc:'과학 · 보화 선생님', url:'https://elicebackendstorage.blob.core.windows.net/file-api/e13c3917-6272-4e3a-a08c-cce68844f6b9/1.%20%EA%B3%BC%ED%95%99_%EA%B3%B5%EA%B0%9C%EC%88%98%EC%97%85%EC%A7%80%EB%8F%84%EC%95%88(%EB%B3%B4%EC%9D%BC%EC%83%A4%EB%A5%BC%20%EB%AF%B8%EB%8B%88%20%EB%B6%80%EC%8A%A4%20%EB%B0%95%EB%9E%8C%ED%9A%8C).pdf?se=2026-12-08T05%3A01%3A53Z&sp=r&sv=2023-08-03&sr=b&sig=pThrANbq/6GvqdwEAw4hnIZq5iFYmJwSLU3YcFTo%2Btg%3D', qr:'' },
     { id:'m2', tab:'materials', type:'file', title:'과학교과 학습자료집',
@@ -220,21 +337,22 @@ var DEFAULT_DATA = {
       desc:'영어 · 신효필 선생님', url:'https://elicebackendstorage.blob.core.windows.net/file-api/195d11f6-33d0-41a8-8759-4f5e0c730514/3.%20%EC%98%81%EC%96%B4%EA%B3%BC_%EA%B3%B5%EA%B0%9C%EC%88%98%EC%97%85%EC%A7%80%EB%8F%84%EC%95%88(%EB%84%88%EC%9D%98%ED%94%84%EB%A1%AC%ED%94%84%ED%8A%B8%EB%8A%94).pdf?se=2026-12-08T05%3A01%3A53Z&sp=r&sv=2023-08-03&sr=b&sig=40Uin4u1DtftdNDOmDcaf8j1VFCVDHL3ABpJ8I2getU%3D', qr:'' },
     { id:'m6', tab:'materials', type:'file', title:'과학과 교수학습 자료집',
       desc:'과학 · 교수학습 자료', url:'https://elicebackendstorage.blob.core.windows.net/file-api/b6508666-3da7-4139-876f-b14597cc1b69/2-1.%20%EA%B3%BC%ED%95%99%EA%B3%BC%20%EA%B5%90%EC%88%98%ED%95%99%EC%8A%B5%20%EC%9E%90%EB%A3%8C%EC%A7%91.pdf?se=2026-12-08T05%3A01%3A53Z&sp=r&sv=2023-08-03&sr=b&sig=qbGb4SAFNxPyGdCa97DK9yMqVFgmGqJ5%2B6NmLFOuN%2Bg%3D', qr:'' },
+    /* ── AI 성장학교 보고서 탭 ── */
     { id:'m7', tab:'report', type:'file', title:'AI 성장학교 성과 공유 자료집',
       desc:'2026학년도 성장학교 성과물 종합', url:'https://elicebackendstorage.blob.core.windows.net/file-api/4db7b02e-5597-4f96-a7c2-9d13ad42b2c8/AI%20%EC%84%B1%EC%9E%A5%ED%95%99%EA%B5%90%20%EC%84%B1%EA%B3%BC%20%EA%B3%B5%EC%9C%A0%20%EC%9E%90%EB%A3%8C%EC%A7%91.pdf?se=2026-12-08T05%3A01%3A15Z&sp=r&sv=2023-08-03&sr=b&sig=mSeff9/%2BDvJXa3Rq%2BWfw9KJkdDjfYexmY2cEF126v%2B0%3D', qr:'' },
     { id:'m8', tab:'report', type:'file', title:'2026학년도 경기형 AI·디지털역량 성장학교 운영계획서',
       desc:'성장학교 운영 계획', url:'https://elicebackendstorage.blob.core.windows.net/file-api/047ccb71-6911-4805-9d3a-385ef390c065/2026%ED%95%99%EB%85%84%EB%8F%84%20%EA%B2%BD%EA%B8%B0%ED%98%95%20AI%C2%B7%EB%94%94%EC%A7%80%ED%84%B8%EC%97%AD%EB%9F%89%20%EC%84%B1%EC%9E%A5%ED%95%99%EA%B5%90%20%EC%88%98%EC%97%85%EA%B3%B5%EA%B0%9C%20%EC%9A%B4%EC%98%81%EA%B3%84%ED%9A%8D%EC%84%9C.hwp?se=2026-12-08T05%3A02%3A26Z&sp=r&sv=2023-08-03&sr=b&sig=yv/YbW9FANqrwOTyW1hkzSKksuGd67XFiX5bN1vrrv4%3D', qr:'' }
   ],
   apps: [
-    { id:'a1', key:'qrRatioCheck',  name:'정기시험 및 수행평가 반영 비율 검토앱', desc:'기말·수행 반영 비율을 자동 검토해 평가 계획 점검을 돕는 앱', qr::'qr_1_ratio_check.png' },
-    { id:'a2', key:'qrPresenter',   name:'오늘의 발표자 뽑기 앱', desc:'학급 발표자를 무작위로 뽑아 주는 발표자 지정 앱', qr::'qr_2_presenter.png' },
-    { id:'a3', key:'qrLunchMovie',  name:'영화 속 식탁에서 급식 앱까지', desc:'영화 속 장면과 급식을 연결한 학생 설계 PICK 프로그램 자료', qr::'qr_3_lunch_movie.png' },
-    { id:'a4', key:'qrSign',        name:'수행평가 싸인 앱', desc:'수행평가 결과 확인 및 서명(전자동의)을 간편하게 처리하는 앱', qr::'qr_4_sign.png' },
-    { id:'a5', key:'qrVibe',        name:'바이브코딩의 이해(공유자료)', desc:'바이브코딩 개념과 활용 사례를 담은 공유 자료', qr::'qr_5_vibe_coding.png' },
-    { id:'a6', key:'qrLessonCheck', name:'교수학습 작성 후 점검 앱', desc:'교수·학습 계획서 작성 후 항목별로 자기 점검하는 앱', qr::'qr_6_lesson_check.png' },
-    { id:'a7', key:'qrAchieve',     name:'교과별 성취기준 생성기', desc:'교과·단원을 입력하면 성취기준 기반 목표를 생성하는 도구', qr::'qr_7_achievement.png' },
-    { id:'a8', key:'qrDebate',      name:'AI찬반 토론앱', desc:'AI 관련 쟁점으로 찬반 토론을 진행하는 수업용 앱', qr::'qr_8_debate.png' },
-    { id:'a9', key:'qrKContent',    name:'[여행] K-콘텐츠 글로벌 앰배서더', desc:'K-콘텐츠를 주제로 한 여행 프로젝트 학습 자료', qr::'qr_9_k_content.png' }
+    { id:'a1', key:'qrRatioCheck',  name:'정기시험 및 수행평가 반영 비율 검토앱', desc:'기말·수행 반영 비율을 자동 검토해 평가 계획 점검을 돕는 앱', qr:'' },
+    { id:'a2', key:'qrPresenter',   name:'오늘의 발표자 뽑기 앱', desc:'학급 발표자를 무작위로 뽑아 주는 발표자 지정 앱', qr:'' },
+    { id:'a3', key:'qrLunchMovie',  name:'영화 속 식탁에서 급식 앱까지', desc:'영화 속 장면과 급식을 연결한 학생 설계 PICK 프로그램 자료', qr:'' },
+    { id:'a4', key:'qrSign',        name:'수행평가 싸인 앱', desc:'수행평가 결과 확인 및 서명(전자동의)을 간편하게 처리하는 앱', qr:'' },
+    { id:'a5', key:'qrVibe',        name:'바이브코딩의 이해(공유자료)', desc:'바이브코딩 개념과 활용 사례를 담은 공유 자료', qr:'' },
+    { id:'a6', key:'qrLessonCheck', name:'교수학습 작성 후 점검 앱', desc:'교수·학습 계획서 작성 후 항목별로 자기 점검하는 앱', qr:'' },
+    { id:'a7', key:'qrAchieve',     name:'교과별 성취기준 생성기', desc:'교과·단원을 입력하면 성취기준 기반 목표를 생성하는 도구', qr:'' },
+    { id:'a8', key:'qrDebate',      name:'AI찬반 토론앱', desc:'AI 관련 쟁점으로 찬반 토론을 진행하는 수업용 앱', qr:'' },
+    { id:'a9', key:'qrKContent',    name:'[여행] K-콘텐츠 글로벌 앰배서더', desc:'K-콘텐츠를 주제로 한 여행 프로젝트 학습 자료', qr:'' }
   ],
   satisfaction: {
     guidance: '참관하신 공개수업에 대한 솔직한 평가를 부탁드립니다. 별점을 선택하고 의견을 남겨 주시면 다음 수업 개선에 적극 반영하겠습니다.',
@@ -247,329 +365,339 @@ var DEFAULT_DATA = {
   }
 };
 
-/* ============================================================
-   관리 로직
-   ============================================================ */
-var state = null;
-var editingId = null;
-
-var TAB_NAMES = {
-  materials:'교과 학습자료', report:'AI 성장학교 보고서', apps:'앱 관련 자료',
-  notice:'공개수업 안내', info:'찾아오시는 길'
+/* QR 이미지 자리(ASSETS)
+   - 파일명 또는 URL을 넣으면 해당 앱 카드에 QR이 표시됩니다.
+   - webapp_data.js 의 apps[i].qr 이 있으면 그 값이 우선합니다.
+     파일명 규칙: qr_1 ~ qr_9 (영문+숫자 권장)
+      (예: qrRatioCheck:'qr_1_ratio_check.png'  →  HTML과 같은 폴더의 이미지 파일) */
+var ASSETS = {
+  qrRatioCheck: 'qr_1_ratio_check.png',
+  qrPresenter: 'qr_2_presenter.png',
+  qrLunchMovie: 'qr_3_lunch_movie.png',
+  qrSign: 'qr_4_sign.png',
+  qrVibe: 'qr_5_vibe_coding.png',
+  qrLessonCheck: 'qr_6_lesson_check.png',
+  qrAchieve: 'qr_7_achievement.png',
+  qrDebate: 'qr_8_debate.png',
+  qrKContent: 'qr_9_k_content.png'
 };
 
-function deepCopy(o){ return JSON.parse(JSON.stringify(o)); }
+/* 만족도 응답 전송 주소(CONFIG)
+   - webapp_data.js 의 satisfaction.appsScriptUrl 이 우선합니다. */
+var CONFIG = { appsScriptUrl: '' };
+
+/* localStorage 키 */
+var LS_PENDING = 'gghs_survey_pending_v1';
+var LS_KEPT    = 'gghs_survey_kept_v1';
+
+/* ============================================================
+   화면 렌더링 및 동작 로직
+   ============================================================ */
 function esc(s){
   return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
   });
 }
-function $(id){ return document.getElementById(id); }
 
-function loadState(){
+/* WEBAPP_DATA(webapp_data.js)가 있으면 우선, 없으면 기본 데이터 */
+function getData(){
+  var d = window.WEBAPP_DATA;
+  if (d && d && typeof d === 'object' && Array.isArray(d.materials) && d.materials.length > 0){
+    var out = {};
+    for (var k in DEFAULT_DATA){ out[k] = DEFAULT_DATA[k]; }
+    for (var k2 in d){ out[k2] = d[k2]; }
+    if (!Array.isArray(out.apps) || out.apps.length === 0){ out.apps = DEFAULT_DATA.apps; }
+    out.__source = 'webapp_data.js';
+    return out;
+  }
+  var base = JSON.parse(JSON.stringify(DEFAULT_DATA));
+  base.__source = 'basic';
+  return base;
+}
+
+function fmtDate(iso){
   try{
-    var raw = localStorage.getItem(LS_KEY);
-    if (raw){
-      var d = JSON.parse(raw);
-      if (d && Array.isArray(d.materials)){
-        /* 기존 저장 데이터에 QR 경로가 비어 있으면 기본 파일명(qr_1 ~ qr_9 규칙)으로 채워 입력칸에 기본 표시 */
-        (d.apps || []).forEach(function(ap){
-          if (!ap.qr){
-            for (var j = 0; j < DEFAULT_DATA.apps.length; j++){
-              if (DEFAULT_DATA.apps[j].id === ap.id){ ap.qr = DEFAULT_DATA.apps[j].qr; break; }
-            }
-          }
-        });
-        return d;
-      }
-    }
-  }catch(e){}
-  return deepCopy(DEFAULT_DATA);
-}
-function saveState(){
-  try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){}
+    var dt = new Date(iso);
+    if (isNaN(dt.getTime())) return String(iso || '');
+    return dt.toLocaleString('ko-KR', { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' });
+  }catch(e){ return String(iso || ''); }
 }
 
-/* ---------- 잠금 해제 ---------- */
-function tryLogin(){
-  if ($('pw').value === PASSWORD){
-    $('gate').style.display = 'none';
-    initApp();
-  } else {
-    $('gate-err').textContent = '비밀번호가 올바르지 않습니다.';
-  }
-}
-
-function initApp(){
-  state = loadState();
-  $('notice').value = state.notice || '';
-  $('guidance').value = (state.satisfaction && state.satisfaction.guidance) || '';
-  $('scripturl').value = (state.satisfaction && state.satisfaction.appsScriptUrl) || '';
-  renderItems();
-  renderAppsEditor();
-  updateInfo();
-}
-
-function updateInfo(){
-  $('data-info').innerHTML = '자료 <b>' + (state.materials || []).length + '</b>건 · 앱 <b>' +
-    (state.apps || []).length + '</b>종 · 최종 배포 기준 시각: ' + esc(state.updatedAt || '-');
-}
-
-/* ---------- 1. 공지문·안내·주소 ---------- */
-function saveMeta(){
-  state.notice = $('notice').value;
-  state.satisfaction = state.satisfaction || deepCopy(DEFAULT_DATA.satisfaction);
-  state.satisfaction.guidance = $('guidance').value;
-  state.satisfaction.appsScriptUrl = $('scripturl').value.replace(/\s+/g, '');
-  saveState();
-  flash('저장되었습니다.', true);
-}
-function flash(msg, ok){
-  var el = $('msg');
-  el.textContent = (ok ? '✅ ' : '⚠️ ') + msg;
-  el.className = ok ? 'ok' : 'err';
-  setTimeout(function(){ el.textContent = ''; }, 2500);
-}
-
-/* ---------- 2. 자료 관리 ---------- */
-function renderItems(){
-  var box = $('item-list');
-  var rows = ['<table><tr><th>제목</th><th>표시 탭</th><th>유형</th><th style="width:150px">관리</th></tr>'];
-  for (var i = 0; i < state.materials.length; i++){
-    var m = state.materials[i];
-    var typeTxt = (m.type === 'file') ? '📄 파일' : '🔗 링크';
-    rows.push('<tr><td><strong>' + esc(m.title) + '</strong>' +
-      (m.desc ? '<br><span class="meta">' + esc(m.desc) + '</span>' : '') + '</td>' +
-      '<td>' + esc(TAB_NAMES[m.tab] || m.tab) + '</td><td>' + typeTxt + '</td>' +
-      '<td>' +
-      '<button class="icon-btn" onclick="editItem(\'' + m.id + '\')">수정</button> ' +
-      '<button class="icon-btn" onclick="delItem(\'' + m.id + '\')">삭제</button> ' +
-      '<button class="icon-btn" onclick="moveItem(' + i + ',-1)" title="위로">↑</button> ' +
-      '<button class="icon-btn" onclick="moveItem(' + i + ',1)" title="아래로">↓</button>' +
-      '</td></tr>');
-  }
-  rows.push('</table>');
-  box.innerHTML = rows.join('');
-}
-
-function saveItem(){
-  var title = $('f-title').value.trim();
-  if (!title){ flash('제목을 입력해 주세요.', false); return; }
-  var obj = {
-    id: editingId || ('m' + Date.now()),
-    tab: $('f-tab').value,
-    type: $('f-type').value,
-    title: title,
-    desc: $('f-desc').value.trim(),
-    url: $('f-url').value.trim(),
-    qr: $('f-qr').value.trim()
-  };
-  if (editingId){
-    for (var i = 0; i < state.materials.length; i++){
-      if (state.materials[i].id === editingId){ state.materials[i] = obj; break; }
-    }
-  } else {
-    state.materials.push(obj);
-  }
-  saveState();
-  resetForm();
-  renderItems();
-  updateInfo();
-  flash(editingId ? '자료가 수정되었습니다.' : '자료가 추가되었습니다.', true);
-  editingId = null;
-}
-
-function editItem(id){
-  for (var i = 0; i < state.materials.length; i++){
-    if (state.materials[i].id === id){
-      var m = state.materials[i];
-      editingId = id;
-      $('f-title').value = m.title || '';
-      $('f-desc').value = m.desc || '';
-      $('f-type').value = m.type || 'file';
-      $('f-tab').value = m.tab || 'materials';
-      $('f-url').value = m.url || '';
-      $('f-qr').value = m.qr || '';
-      $('f-save').textContent = '💾 자료 수정 완료';
-      window.scrollTo({ top: document.body.scrollHeight * 0.35, behavior:'smooth' });
-      return;
-    }
-  }
-}
-
-function delItem(id){
-  if (!confirm('이 자료를 삭제할까요?')) return;
-  state.materials = state.materials.filter(function(m){ return m.id !== id; });
-  saveState();
-  renderItems();
-  updateInfo();
-  flash('자료가 삭제되었습니다.', true);
-}
-
-function moveItem(idx, dir){
-  var j = idx + dir;
-  if (j < 0 || j >= state.materials.length) return;
-  var t = state.materials[idx];
-  state.materials[idx] = state.materials[j];
-  state.materials[j] = t;
-  saveState();
-  renderItems();
-}
-
-function resetForm(){
-  editingId = null;
-  $('f-title').value = ''; $('f-desc').value = ''; $('f-url').value = ''; $('f-qr').value = '';
-  $('f-type').value = 'file'; $('f-tab').value = 'materials';
-  $('f-save').textContent = '＋ 자료 추가';
-}
-
-/* ---------- 3. 앱 · QR 관리 ---------- */
-function renderAppsEditor(){
-  var box = $('app-list');
-  box.innerHTML = '';
-  for (var i = 0; i < state.apps.length; i++){
-    (function(idx){
-      var a = state.apps[idx];
-      var row = document.createElement('div');
-      row.className = 'app-row';
-      row.innerHTML =
-        '<div><label>앱 이름</label><input type="text" data-f="name" value="' + esc(a.name) + '"></div>' +
-        '<div><label>설명</label><input type="text" data-f="desc" value="' + esc(a.desc || '') + '"></div>' +
-        '<div><label>QR 경로(qr_1 ~ qr_9 규칙, 파일명/URL)</label><input type="text" data-f="qr" value="' + esc(a.qr || '') + '"></div>' +
-        '<div><button class="icon-btn" title="삭제">🗑️</button></div>';
-      row.querySelector('button').addEventListener('click', function(){
-        if (confirm('이 앱을 목록에서 삭제할까요?')){ state.apps.splice(idx, 1); saveState(); renderAppsEditor(); updateInfo(); }
-      });
-      box.appendChild(row);
-    })(i);
-  }
-}
-function addApp(){
-  state.apps.push({ id:'a' + Date.now(), key:'', name:'', desc:'', qr:'' });
-  saveState();
-  renderAppsEditor();
-}
-function saveApps(){
-  var rows = $('app-list').querySelectorAll('.app-row');
-  var next = [];
-  for (var i = 0; i < rows.length; i++){
-    var r = rows[i];
-    var cur = state.apps[i] || {};
-    next.push({
-      id: cur.id || ('a' + Date.now() + i),
-      key: cur.key || '',
-      name: r.querySelector('[data-f=name]').value.trim(),
-      desc: r.querySelector('[data-f=desc]').value.trim(),
-      qr: r.querySelector('[data-f=qr]').value.trim()
+/* 탭 전환 */
+function initTabs(){
+  var btns = document.querySelectorAll('.tab-btn');
+  for (var i = 0; i < btns.length; i++){
+    btns[i].addEventListener('click', function(){
+      var target = this.getAttribute('data-tab');
+      var all = document.querySelectorAll('.tab-btn');
+      for (var j = 0; j < all.length; j++){ all[j].classList.remove('active'); }
+      this.classList.add('active');
+      var panels = document.querySelectorAll('.panel');
+      for (var k = 0; k < panels.length; k++){ panels[k].classList.remove('active'); }
+      var panel = document.getElementById('panel-' + target);
+      if (panel) panel.classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     });
   }
-  state.apps = next;
-  saveState();
-  updateInfo();
-  flash('앱 정보가 저장되었습니다.', true);
 }
 
-/* ---------- 4. 배포 · 백업 ---------- */
-function downloadText(filename, text, mime){
-  var blob = new Blob([text], { type: mime || 'text/plain;charset=utf-8' });
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url; a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+/* 자료 목록 렌더링(동적) */
+function renderMaterials(containerId, tab){
+  var box = document.getElementById(containerId);
+  if (!box) return;
+  box.innerHTML = '';
+  var items = (DATA.materials || []).filter(function(m){ return m.tab === tab; });
+  if (items.length === 0){
+    box.innerHTML = '<p style="color:#9aa9b6;font-size:.85rem">등록된 자료가 없습니다.</p>';
+    return;
+  }
+  for (var i = 0; i < items.length; i++){
+    var m = items[i];
+    var a = document.createElement('a');
+    a.className = 'mat-item';
+    a.href = m.url || '#';
+    a.target = '_blank'; a.rel = 'noopener';
+    var icon = (m.type === 'file') ? '📄' : '🔗';
+    a.innerHTML = '<span class="mat-icon">' + icon + '</span><span class="mat-body"><strong>' +
+      esc(m.title) + '</strong>' + (m.desc ? '<em>' + esc(m.desc) + '</em>' : '') + '</span>';
+    box.appendChild(a);
+  }
 }
 
-function deployJs(){
-  state.updatedAt = new Date().toISOString();
-  saveState();
-  updateInfo();
-  var js = '/* 광교호수중 공개수업 참관 안내 - 배포 데이터(webapp_data.js)\n' +
-           '   이 파일을 참관자용 HTML(공개수업참관_안내웹앱_광교호수중.html)과 같은 폴더에 넣어 주세요.\n' +
-           '   배포 시각: ' + state.updatedAt + ' */\n' +
-           'window.WEBAPP_DATA = ' + JSON.stringify(state, null, 2) + ';\n';
-  downloadText('webapp_data.js', js, 'text/javascript;charset=utf-8');
-  flash('webapp_data.js 를 내려받았습니다. 참관자용 HTML과 같은 폴더에 넣어 주세요.', true);
+/* 앱 카드 렌더링(ASSETS + WEBAPP_DATA 이중 지원) */
+function resolveQr(app){
+  if (app && app.qr) return app.qr;
+  if (app && app.key && ASSETS[app.key]) return ASSETS[app.key];
+  return '';
 }
-
-function exportJson(){
-  downloadText('공개수업_데이터_백업.json', JSON.stringify(state, null, 2), 'application/json;charset=utf-8');
-  flash('JSON 백업 파일을 내려받았습니다.', true);
-}
-
-function importJson(evt){
-  var file = evt.target.files && evt.target.files[0];
-  if (!file) return;
-  var reader = new FileReader();
-  reader.onload = function(e){
-    try{
-      var d = JSON.parse(e.target.result);
-      if (!d || !Array.isArray(d.materials)) throw new Error('형식이 올바르지 않습니다(materials 배열 필요).');
-      state = d;
-      saveState();
-      initApp();
-      flash('JSON 데이터를 복원했습니다.', true);
-    }catch(err){
-      flash('가져오기 실패: ' + err.message, false);
+function renderApps(){
+  var grid = document.getElementById('apps-grid');
+  grid.innerHTML = '';
+  var apps = DATA.apps || [];
+  for (var i = 0; i < apps.length; i++){
+    var a = apps[i];
+    var card = document.createElement('div');
+    card.className = 'card app-card';
+    var qr = resolveQr(a);
+    var qrHtml = qr
+      ? '<img src="' + esc(qr) + '" alt="' + esc(a.name) + ' QR 코드">'
+      : '<div class="qr-empty">QR 준비 중</div>';
+    card.innerHTML = '<div class="qr-box">' + qrHtml + '</div>' +
+      '<h3>' + esc(a.name) + '</h3><p>' + esc(a.desc || '') + '</p>';
+    /* QR 이미지 로드 실패 시 안내 표시 (파일명 동적 생성, esc()로 XSS 방지) */
+    if (qr){
+      var box = card.querySelector('.qr-box');
+      var img = card.querySelector('img');
+      img.addEventListener('error', (function(bx, file){
+        return function(){
+          bx.innerHTML = '<div class="qr-empty">⚠️ ' + esc(file) +
+            ' 파일을 찾지 못했습니다 — HTML과 같은 폴더에 이 이름의 이미지를 넣어주세요.</div>';
+        };
+      })(box, qr));
     }
+    grid.appendChild(card);
+  }
+}
+
+/* 만족도 조사 */
+var answers = {};
+var sending = false;
+
+function buildSurvey(){
+  document.getElementById('survey-guidance').textContent =
+    (DATA.satisfaction && DATA.satisfaction.guidance) || DEFAULT_DATA.satisfaction.guidance;
+  var rows = document.getElementById('rating-rows');
+  rows.innerHTML = '';
+  answers = {};
+  var qs = (DATA.satisfaction && DATA.satisfaction.ratings) || DEFAULT_DATA.satisfaction.ratings;
+  for (var i = 0; i < qs.length; i++){
+    (function(idx, label){
+      var row = document.createElement('div');
+      row.className = 'q-row';
+      var starsHtml = '';
+      for (var s = 1; s <= 5; s++){
+        starsHtml += '<span data-v="' + s + '" title="' + s + '점">★</span>';
+      }
+      row.innerHTML = '<div class="q-label">' + (idx + 1) + '. ' + esc(label) + '</div>' +
+        '<div class="stars" role="radiogroup">' + starsHtml + '</div>';
+      rows.appendChild(row);
+      var spans = row.querySelectorAll('.stars span');
+      for (var j = 0; j < spans.length; j++){
+        spans[j].addEventListener('click', function(){
+          var v = parseInt(this.getAttribute('data-v'), 10);
+          answers['q' + (idx + 1)] = v;
+          for (var t = 0; t < spans.length; t++){
+            var tv = parseInt(spans[t].getAttribute('data-v'), 10);
+            spans[t].className = (tv <= v) ? 'on' : '';
+          }
+        });
+      }
+    })(i, qs[i]);
+  }
+}
+
+function getAppsScriptUrl(){
+  if (DATA.satisfaction && DATA.satisfaction.appsScriptUrl) return DATA.satisfaction.appsScriptUrl;
+  if (CONFIG.appsScriptUrl) return CONFIG.appsScriptUrl;
+  return '';
+}
+
+function lsRead(key){
+  try{ return JSON.parse(localStorage.getItem(key) || '[]'); }catch(e){ return []; }
+}
+function lsWrite(key, arr){
+  try{ localStorage.setItem(key, JSON.stringify(arr)); }catch(e){}
+}
+
+function collectPayload(){
+  return {
+    school: '광교호수중학교',
+    event: '2026 GGHS 디지털 성장 수업 공개',
+    answers: answers,
+    opinion: document.getElementById('survey-opinion').value,
+    submittedAt: new Date().toISOString()
   };
-  reader.readAsText(file, 'utf-8');
-  evt.target.value = '';
 }
 
-function resetAll(){
-  if (!confirm('모든 편집 내용을 지우고 기본 데이터로 초기화할까요?')) return;
-  state = deepCopy(DEFAULT_DATA);
-  saveState();
-  initApp();
-  flash('기본 데이터로 초기화했습니다.', true);
+function sendOne(payload){
+  var url = getAppsScriptUrl();
+  return fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  }).then(function(res){
+    return res.text();
+  }).then(function(text){
+    var data = null;
+    try{ data = JSON.parse(text); }catch(e){}
+    if (data && data.status === 'ok'){ return { ok: true }; }
+    return { ok: false, reason: '응답 형식이 올바르지 않습니다(status 확인 실패)' };
+  }).catch(function(err){
+    return { ok: false, reason: '네트워크 오류: ' + (err && err.message ? err.message : err) };
+  });
 }
 
-/* ---------- 5. 미리보기 ---------- */
-function togglePreview(){
-  var pv = $('preview');
-  if (pv.style.display === 'block'){ pv.style.display = 'none'; return; }
-  var html = '<h3>📋 공개수업 안내</h3><p>' + esc(state.notice || '(공지문 없음)') + '</p>';
-  var tabs = ['materials','apps','report','info','notice'];
-  for (var t = 0; t < tabs.length; t++){
-    var items = (state.materials || []).filter(function(m){ return m.tab === tabs[t]; });
-    if (items.length === 0) continue;
-    html += '<h3>' + esc(TAB_NAMES[tabs[t]] || tabs[t]) + ' (' + items.length + '건)</h3><ul>';
-    for (var i = 0; i < items.length; i++){
-      html += '<li>' + (items[i].type === 'file' ? '📄' : '🔗') + ' ' + esc(items[i].title) + '</li>';
+function setStatus(msg, cls){
+  var el = document.getElementById('survey-status');
+  el.textContent = msg;
+  el.className = cls || '';
+}
+
+function lockBtns(lock){
+  sending = lock;
+  document.getElementById('survey-submit').disabled = lock;
+  document.getElementById('survey-retry').disabled = lock;
+  document.getElementById('survey-submit').textContent = lock ? '⏳ 전송 중…' : '✉️ 만족도 응답 보내기';
+}
+
+function renderPendingBanner(){
+  var box = document.getElementById('pending-banner');
+  var pend = lsRead(LS_PENDING);
+  if (pend.length === 0){ box.innerHTML = ''; return; }
+  box.innerHTML = '<span>⏳ ' + pend.length + '건의 미전송 응답이 이 기기에 보관되어 있습니다.</span>';
+  var btn = document.createElement('button');
+  btn.className = 'btn btn-ghost';
+  btn.type = 'button';
+  btn.textContent = '📤 일괄 재전송';
+  btn.addEventListener('click', retryAll);
+  box.appendChild(btn);
+}
+
+function retryAll(){
+  var pend = lsRead(LS_PENDING);
+  if (pend.length === 0){ return; }
+  if (!getAppsScriptUrl()){
+    setStatus('❌ 전송 주소가 미설정되어 재전송할 수 없습니다. 관리자 배포 데이터(webapp_data.js)를 확인해 주세요.', 'err');
+    return;
+  }
+  lockBtns(true);
+  var remain = pend.slice();
+  var okCount = 0;
+  function next(){
+    if (remain.length === 0){
+      lsWrite(LS_PENDING, remain);
+      lockBtns(false);
+      renderPendingBanner();
+      setStatus('✅ ' + okCount + '건 재전송 완료' + (remain.length ? (', ' + remain.length + '건 실패(보관됨)') : ''), okCount ? 'ok' : 'err');
+      return;
     }
-    html += '</ul>';
+    var p = remain[0];
+    sendOne(p).then(function(r){
+      if (r.ok){ okCount++; remain.shift(); next(); }
+      else {
+        setStatus('❌ 재전송 실패: ' + r.reason, 'err');
+        lsWrite(LS_PENDING, remain);
+        lockBtns(false);
+        renderPendingBanner();
+      }
+    });
   }
-  html += '<h3>📱 업무효용 앱 (' + (state.apps || []).length + '종)</h3><ul>';
-  for (var k = 0; k < (state.apps || []).length; k++){
-    var a = state.apps[k];
-    html += '<li>' + esc(a.name) + (a.qr ? ' — QR: ' + esc(a.qr) : ' — QR 준비 중') + '</li>';
-  }
-  html += '</ul>';
-  html += '<h3>⭐ 만족도 조사</h3><p>전송 주소: ' + ((state.satisfaction && state.satisfaction.appsScriptUrl) ? '설정됨' : '미설정(기기 보관 모드)') + '</p>';
-  pv.innerHTML = html;
-  pv.style.display = 'block';
+  next();
 }
 
-/* 초기 진입: Enter 키로도 잠금 해제 */
-$('pw').focus();
+function onSubmit(){
+  if (sending) return;
+  if (Object.keys(answers).length < ((DATA.satisfaction && DATA.satisfaction.ratings) || DEFAULT_DATA.satisfaction.ratings).length){
+    setStatus('❌ 별점 문항을 모두 선택해 주세요.', 'err');
+    return;
+  }
+  var payload = collectPayload();
+  var url = getAppsScriptUrl();
+  if (!url){
+    /* 기기 보관 모드: 전송 주소 미설정 */
+    var kept = lsRead(LS_KEPT);
+    kept.push(payload);
+    lsWrite(LS_KEPT, kept);
+    setStatus('ℹ️ 전송 주소가 미설정되어 이 기기에 보관했습니다(기기 보관 모드). 감사합니다!', 'ok');
+    document.getElementById('survey-opinion').value = '';
+    answers = {};
+    buildSurvey();
+    return;
+  }
+  lockBtns(true);
+  sendOne(payload).then(function(r){
+    if (r.ok){
+      setStatus('✅ 응답이 정상적으로 전송되었습니다. 감사합니다!', 'ok');
+      document.getElementById('survey-opinion').value = '';
+      answers = {};
+      buildSurvey();
+    } else {
+      var pend = lsRead(LS_PENDING);
+      pend.push(payload);
+      lsWrite(LS_PENDING, pend);
+      setStatus('❌ 전송에 실패했습니다(' + r.reason + '). 응답은 이 기기에 보관되었으며 나중에 다시 전송할 수 있습니다.', 'err');
+      document.getElementById('survey-retry').style.display = '';
+      renderPendingBanner();
+    }
+    lockBtns(false);
+  });
+}
 
-/* ---------- 인라인 onclick용 전역 노출 (IIFE 내부 함수를 window에 연결) ---------- */
-window.tryLogin = tryLogin;
-window.saveMeta = saveMeta;
-window.saveItem = saveItem;
-window.resetForm = resetForm;
-window.editItem = editItem;
-window.delItem = delItem;
-window.moveItem = moveItem;
-window.addApp = addApp;
-window.saveApps = saveApps;
-window.deployJs = deployJs;
-window.exportJson = exportJson;
-window.importJson = importJson;
-window.resetAll = resetAll;
-window.togglePreview = togglePreview;
+/* 초기화 */
+var DATA = getData();
+
+function init(){
+  initTabs();
+  document.getElementById('updated-badge').textContent =
+    '마지막 업데이트: ' + (fmtDate(DATA.updatedAt) || '기본 자료') +
+    (DATA.__source === 'webapp_data.js' ? ' · 배포 데이터 적용' : ' · 기본 자료');
+  document.getElementById('notice-extras').innerHTML = (DATA.notice ? '<p style="margin-top:10px">' + esc(DATA.notice) + '</p>' : '');
+  renderMaterials('materials-list', 'materials');
+  renderApps();
+  renderMaterials('apps-links', 'apps');
+  renderMaterials('report-links', 'report');
+  renderMaterials('info-extras', 'info');
+  buildSurvey();
+  renderPendingBanner();
+  document.getElementById('survey-submit').addEventListener('click', onSubmit);
+  document.getElementById('survey-retry').addEventListener('click', retryAll);
+}
+
+if (document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
 })();
 </script>
 </body>
